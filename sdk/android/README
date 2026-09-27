@@ -19,3 +19,29 @@ To use the Java API, start by looking at the public interface of
 org.webrtc.PeerConnection{,Factory} and the org.webrtc.PeerConnectionTest.
 
 To understand the implementation of the API, see the native code in src/jni/pc/.
+
+TURN TLS certificate verification
+---------------------------------
+When no application certificate verifier is installed, the Android platform
+verifier can validate a chain that the built-in root certificates do not trust.
+The TLS connection's hostname selects the application's Network Security
+Configuration (NSC). Hostname matching is checked separately by SSLAdapter.
+With built-in roots enabled, an accepted chain does not reach the platform
+fallback, so NSC anchors and pins are not a global veto over the built-in roots.
+An application-provided verifier replaces the platform fallback.
+
+The hostname-aware native verifier preserves existing C++ overrides after a
+rebuild, but changes the SSLCertificateVerifier vtable and an internal JNI
+signature. Rebuild native consumers with the matching headers and update the
+Java classes and native libraries together as one SDK/AAR. Mixing an old native
+library with new Java classes, or the reverse, is not supported. The public Java
+SSLCertificateVerifier callback is unchanged.
+
+The platform_certificate_verifier_instrumentation_test_apk target exercises
+Android's real RootTrustManager with its own NSC XML and test CA resource. It
+checks the original hostname-free refusal, host-specific anchors and pins,
+and missing-host refusal through the production Java entry point. Its test
+certificates are valid from 2020 to 2120, and no device trust store is modified.
+Run it on API 24 or later with:
+  out/Android/bin/run_platform_certificate_verifier_instrumentation_test_apk
+These tests do not exercise native hostname matching or a full TURN connection.

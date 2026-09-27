@@ -137,7 +137,8 @@ class SSLCertificateVerifier {
   // caller did not provide one. Host-aware implementations must handle that
   // explicitly. SSLAdapter still checks the certificate's hostname separately.
   // Delegate to the existing API so leaf-only and chain-only implementations
-  // remain source compatible.
+  // remain source compatible. This virtual overload changes the C++ ABI;
+  // rebuild native implementations and their callers with the same headers.
   virtual bool VerifyChain(const SSLCertChain& chain,
                            absl::string_view hostname) {
     return VerifyChain(chain);
