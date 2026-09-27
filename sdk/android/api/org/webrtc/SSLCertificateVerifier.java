@@ -24,4 +24,22 @@ public interface SSLCertificateVerifier {
    * @return True if the certificate is verified and trusted else false.
    */
   @CalledByNative boolean verify(byte[] certificate);
+
+  /**
+   * Verifies the complete certificate chain for the actual TLS connection's hostname.
+   * Override this method to apply hostname-specific trust policy without fetching certificates
+   * from a second connection. Native WebRTC still checks the certificate's hostname separately.
+   *
+   * <p>The default preserves existing implementations, including lambdas, by passing only the
+   * leaf to {@link #verify(byte[])}. As with that method, invocation and the effect of a rejection
+   * follow the native SDK's certificate verification policy; this does not change trust precedence.
+   *
+   * @param chain DER encoded X509 certificates, leaf first, followed by intermediates.
+   * @param hostname The TLS hostname, or an empty string if the caller did not supply one.
+   */
+  @CalledByNative
+  default boolean verifyChain(byte[][] chain, String hostname) {
+    return chain != null && chain.length != 0 && chain[0] != null && chain[0].length != 0
+        && verify(chain[0]);
+  }
 }

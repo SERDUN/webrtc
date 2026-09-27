@@ -29,6 +29,9 @@ class SSLCertificateVerifierWrapper : public SSLCertificateVerifier {
   ~SSLCertificateVerifierWrapper() override;
 
   bool Verify(const SSLCertificate& certificate) override;
+  bool VerifyChain(const SSLCertChain& chain) override;
+  bool VerifyChain(const SSLCertChain& chain,
+                   absl::string_view hostname) override;
 
  private:
   const ScopedJavaGlobalRef<jobject> ssl_certificate_verifier_;
