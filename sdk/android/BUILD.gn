@@ -1857,6 +1857,7 @@ if (is_android) {
       ":native_api_stacktrace",
       ":native_api_video",
       ":opensles_audio_device_module",
+      ":peerconnection_jni",
       ":video_jni",
       "../../api:create_modular_peer_connection_factory",
       "../../api:enable_media_with_defaults",
