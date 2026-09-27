@@ -92,7 +92,7 @@ jobs:
             --extra-gn-args 'is_debug=false' 'symbol_level=0' \
               'rtc_use_h264=false' 'rtc_build_examples=false' 'rtc_build_tools=false' \
               'rtc_enable_protobuf=false' 'use_rtti=true' 'use_remoteexec=false' \
-            --extra-ninja-switches=-j2
+            --extra-ninja-switches=-local_jobs=4
 
       - name: Record artifact provenance
         run: |
