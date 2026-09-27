@@ -18,9 +18,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 330
     env:
-      WEBRTC_REVISION: b460fbc087d0a06c2af48dac880af218598d320a
+      WEBRTC_REVISION: 072cc910b30d7731a4f9b5e6bd2d852a02637f37
       WEBRTC_REPOSITORY: https://github.com/SERDUN/webrtc.git
-      MAVEN_VERSION: 150.7871.02-turns-b460fbc087d0
+      MAVEN_VERSION: 150.7871.02-turns-072cc910b30d
       DEPOT_TOOLS_REVISION: 41c9bd890277c2f551499d171d215dfdf5dab97d
       BUILD_SCRIPTS_REVISION: 66ed9c7b07b2ad6ad624df0317e408dca562f91b
       DEPOT_TOOLS_UPDATE: '0'
@@ -129,7 +129,7 @@ jobs:
       - name: Upload test AAR
         uses: actions/upload-artifact@v4
         with:
-          name: android-turns-b460fbc087d0-arm64-v8a
+          name: android-turns-072cc910b30d-arm64-v8a
           path: artifact/
           if-no-files-found: error
           retention-days: 14
