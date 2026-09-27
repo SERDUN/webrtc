@@ -1,0 +1,135 @@
+name: Android TURN trust test AAR
+
+on:
+  push:
+    branches: [test/android-turns-aar]
+    paths: [.github/workflows/android-turns-test-aar.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-turns-test-aar
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    env:
+      WEBRTC_REVISION: b460fbc087d0a06c2af48dac880af218598d320a
+      WEBRTC_REPOSITORY: https://github.com/SERDUN/webrtc.git
+      MAVEN_VERSION: 150.7871.02-turns-b460fbc087d0
+      DEPOT_TOOLS_REVISION: 41c9bd890277c2f551499d171d215dfdf5dab97d
+      BUILD_SCRIPTS_REVISION: 66ed9c7b07b2ad6ad624df0317e408dca562f91b
+      DEPOT_TOOLS_UPDATE: '0'
+      DEPOT_TOOLS_METRICS: '0'
+    steps:
+      - name: Free space on the disposable runner
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          df -h .
+
+      - name: Check out the pinned native fix
+        uses: actions/checkout@v4
+        with:
+          repository: SERDUN/webrtc
+          ref: ${{ env.WEBRTC_REVISION }}
+          path: native/src
+          persist-credentials: false
+
+      - name: Install depot_tools
+        run: |
+          git init "$RUNNER_TEMP/depot_tools"
+          git -C "$RUNNER_TEMP/depot_tools" remote add origin \
+            https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          git -C "$RUNNER_TEMP/depot_tools" fetch --depth=1 origin "$DEPOT_TOOLS_REVISION"
+          git -C "$RUNNER_TEMP/depot_tools" checkout --detach FETCH_HEAD
+          echo "$RUNNER_TEMP/depot_tools" >> "$GITHUB_PATH"
+
+      - name: Sync pinned Android dependencies
+        working-directory: native
+        run: |
+          cat > .gclient <<'EOF'
+          solutions = [{
+            'name': 'src',
+            'url': 'https://github.com/SERDUN/webrtc.git',
+            'deps_file': 'DEPS',
+            'managed': False,
+            'custom_deps': {},
+            'custom_vars': {'checkout_instrumented_libraries': False},
+          }]
+          target_os = ['android']
+          EOF
+          gclient sync --no-history --nohooks --jobs=4 --revision "src@$WEBRTC_REVISION"
+          test "$(git -C src rev-parse HEAD)" = "$WEBRTC_REVISION"
+
+      - name: Install build dependencies and run hooks
+        working-directory: native
+        run: |
+          sudo python3 src/build/install-build-deps.py --no-prompt \
+            --android --no-syms --no-chromeos-fonts --no-nacl
+          gclient runhooks
+          df -h .
+
+      - name: Apply upstream license packaging metadata
+        working-directory: native/src
+        run: |
+          curl --fail --location --retry 3 \
+            "https://raw.githubusercontent.com/webrtc-sdk/webrtc-build/$BUILD_SCRIPTS_REVISION/build/patches/add_license_dav1d.patch" \
+            --output "$RUNNER_TEMP/license-packaging.patch"
+          git apply "$RUNNER_TEMP/license-packaging.patch"
+
+      - name: Build the complete arm64 AAR
+        working-directory: native/src
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/artifact"
+          python3 tools_webrtc/android/build_aar.py \
+            --build-dir out/turns-aar \
+            --output "$GITHUB_WORKSPACE/artifact/libwebrtc.aar" \
+            --arch arm64-v8a \
+            --extra-gn-args 'is_debug=false' 'symbol_level=0' \
+              'rtc_use_h264=false' 'rtc_build_examples=false' 'rtc_build_tools=false' \
+              'rtc_enable_protobuf=false' 'use_rtti=true' 'use_remoteexec=false' \
+            --extra-ninja-switches=-j2
+
+      - name: Record artifact provenance
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+
+          artifact = Path('artifact')
+          revision = os.environ['WEBRTC_REVISION']
+          assert subprocess.check_output(
+              ['git', '-C', 'native/src', 'rev-parse', 'HEAD'], text=True).strip() == revision
+          manifest = {
+              'source_repository': os.environ['WEBRTC_REPOSITORY'],
+              'source_revision': revision,
+              'maven_version': os.environ['MAVEN_VERSION'],
+              'architectures': ['arm64-v8a'],
+              'aar_sha256': hashlib.sha256((artifact / 'libwebrtc.aar').read_bytes()).hexdigest(),
+              'depot_tools_revision': os.environ['DEPOT_TOOLS_REVISION'],
+              'license_packaging_patch': (
+                  'webrtc-sdk/webrtc-build@' + os.environ['BUILD_SCRIPTS_REVISION']
+                  + ':build/patches/add_license_dav1d.patch'),
+              'workflow_commit': os.environ['GITHUB_SHA'],
+              'workflow_run': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY']
+                  + '/actions/runs/' + os.environ['GITHUB_RUN_ID'],
+          }
+          (artifact / 'build-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          shutil.copy2('native/src/out/turns-aar/arm64-v8a/args.gn', artifact / 'args.gn')
+          PY
+
+      - name: Upload test AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-turns-b460fbc087d0-arm64-v8a
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
