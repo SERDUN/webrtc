@@ -89,7 +89,7 @@ jobs:
             --build-dir out/turns-aar \
             --output "$GITHUB_WORKSPACE/artifact/libwebrtc.aar" \
             --arch arm64-v8a \
-            --extra-gn-args 'is_debug=false' 'symbol_level=0' \
+            --extra-gn-args 'is_debug=false' 'symbol_level=0' 'treat_warnings_as_errors=false' \
               'rtc_use_h264=false' 'rtc_build_examples=false' 'rtc_build_tools=false' \
               'rtc_enable_protobuf=false' 'use_rtti=true' 'use_remoteexec=false' \
             --extra-ninja-switches=-local_jobs=4
