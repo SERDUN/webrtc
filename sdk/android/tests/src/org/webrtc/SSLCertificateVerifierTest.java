@@ -15,8 +15,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.annotation.Config;
 
+@RunWith(AndroidJUnit4.class)
+@Config(manifest = Config.NONE)
 public class SSLCertificateVerifierTest {
   @Test
   public void legacyLambdaReceivesOnlyLeaf() {
