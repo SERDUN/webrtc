@@ -27,6 +27,8 @@ namespace jni {
 // consumer rather than only those that build their dependencies through this
 // SDK. It is still only consulted after the built-in anchors have failed, and an
 // application-supplied tls_cert_verifier continues to take precedence.
+// The connection's hostname selects the application's trust policy on the
+// platform side; without one the hostname-free policy applies, as before.
 class PlatformCertificateVerifier : public SSLCertificateVerifier {
  public:
   PlatformCertificateVerifier();
@@ -34,6 +36,8 @@ class PlatformCertificateVerifier : public SSLCertificateVerifier {
 
   bool Verify(const SSLCertificate& certificate) override;
   bool VerifyChain(const SSLCertChain& chain) override;
+  bool VerifyChain(const SSLCertChain& chain,
+                   absl::string_view hostname) override;
 };
 
 // Matches rtc_base's PlatformCertificateVerifierFactory signature so that
