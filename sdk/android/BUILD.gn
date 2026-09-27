@@ -1834,6 +1834,7 @@ if (is_android) {
       "native_unittests/codecs/wrapper_unittest.cc",
       "native_unittests/java_types_unittest.cc",
       "native_unittests/peerconnection/peer_connection_factory_unittest.cc",
+      "native_unittests/peerconnection/ssl_certificate_verifier_unittest.cc",
       "native_unittests/stacktrace/stacktrace_unittest.cc",
       "native_unittests/video/video_source_unittest.cc",
     ]
@@ -1856,6 +1857,7 @@ if (is_android) {
       ":native_api_stacktrace",
       ":native_api_video",
       ":opensles_audio_device_module",
+      ":peerconnection_jni",
       ":video_jni",
       "../../api:create_modular_peer_connection_factory",
       "../../api:enable_media_with_defaults",
@@ -1883,12 +1885,14 @@ if (is_android) {
       "../../modules/utility",
       "../../modules/video_coding:video_codec_interface",
       "../../pc:libjingle_peerconnection",
+      "../../rtc_base:buffer",
       "../../rtc_base:checks",
       "../../rtc_base:ip_address",
       "../../rtc_base:logging",
       "../../rtc_base:network_constants",
       "../../rtc_base:platform_thread",
       "../../rtc_base:rtc_event",
+      "../../rtc_base:ssl",
       "../../rtc_base:stringutils",
       "../../rtc_base:threading",
       "../../rtc_base:timeutils",
@@ -1915,6 +1919,7 @@ if (is_android) {
       "native_unittests/org/webrtc/JavaTypesTestHelper.java",
       "native_unittests/org/webrtc/JavaVideoSourceTestHelper.java",
       "native_unittests/org/webrtc/PeerConnectionFactoryInitializationHelper.java",
+      "native_unittests/org/webrtc/SSLCertificateVerifierTestHelper.java",
     ]
 
     deps = [
@@ -1939,6 +1944,7 @@ if (is_android) {
       "native_unittests/org/webrtc/JavaTypesTestHelper.java",
       "native_unittests/org/webrtc/JavaVideoSourceTestHelper.java",
       "native_unittests/org/webrtc/PeerConnectionFactoryInitializationHelper.java",
+      "native_unittests/org/webrtc/SSLCertificateVerifierTestHelper.java",
     ]
     namespace = "webrtc::jni"
   }
@@ -1954,8 +1960,10 @@ if (is_android) {
       "tests/src/org/webrtc/GlGenericDrawerTest.java",
       "tests/src/org/webrtc/HardwareVideoEncoderTest.java",
       "tests/src/org/webrtc/IceCandidateTest.java",
+      "tests/src/org/webrtc/PlatformCertificateVerifierTest.java",
       "tests/src/org/webrtc/RefCountDelegateTest.java",
       "tests/src/org/webrtc/RenderSynchronizerTest.java",
+      "tests/src/org/webrtc/SSLCertificateVerifierTest.java",
       "tests/src/org/webrtc/ScalingSettingsTest.java",
       "tests/src/org/webrtc/audio/LowLatencyAudioBufferManagerTest.java",
     ]
