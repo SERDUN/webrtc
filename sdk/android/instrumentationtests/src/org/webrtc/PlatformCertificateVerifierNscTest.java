@@ -92,7 +92,9 @@ public class PlatformCertificateVerifierNscTest {
   }
 
   @Test
-  public void missingHostCannotBypassDomainPolicy() {
+  public void missingHostKeepsTheHostnameFreeCheck() {
+    // Without a hostname the platform gets the hostname-free call, as before the fix, which a
+    // per-domain configuration refuses outright; no domain policy is consulted.
     assertFalse(PlatformCertificateVerifier.verifyServerChain(derChain, ""));
   }
 }
